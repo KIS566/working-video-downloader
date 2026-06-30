@@ -2,3 +2,4 @@ Flask==2.3.3
 yt-dlp>=2024.7.25
 requests>=2.32.2
 gunicorn==21.2.0
+isodate==0.6.1
