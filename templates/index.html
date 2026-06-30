@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Video Downloader Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            padding: 40px 0 30px;
+        }
+
+        .header h1 {
+            font-size: 42px;
+            background: linear-gradient(135deg, #f093fb, #f5576c, #4facfe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: #aaa;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+
+        .card {
+            background: rgba(255,255,255,0.06);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .input-group input {
+            flex: 1;
+            padding: 16px 22px;
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.08);
+            color: white;
+            font-size: 16px;
+            min-width: 200px;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .input-group input::placeholder {
+            color: #666;
+        }
+
+        .btn {
+            padding: 16px 30px;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe, #00f2fe);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(79,172,254,0.4);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .sites {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 15px;
+        }
+
+        .site-badge {
+            background: rgba(255,255,255,0.08);
+            padding: 6px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            color: #aaa;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: 12px;
+            margin-top: 15px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(67,233,123,0.15);
+            color: #43e97b;
+            border: 1px solid rgba(67,233,123,0.2);
+        }
+
+        .alert-error {
+            background: rgba(245,87,108,0.15);
+            color: #f5576c;
+            border: 1px solid rgba(245,87,108,0.2);
+        }
+
+        .alert-info {
+            background: rgba(79,172,254,0.15);
+            color: #4facfe;
+            border: 1px solid rgba(79,172,254,0.2);
+        }
+
+        .footer {
+            text-align: center;
+            color: #555;
+            font-size: 13px;
+            padding: 20px;
+        }
+
+        .footer a {
+            color: #4facfe;
+            text-decoration: none;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 { font-size: 28px; }
+            .card { padding: 20px; }
+            .input-group input { min-width: 150px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⬇️ Video Downloader Pro</h1>
+            <p>YouTube • Instagram • Facebook • TikTok</p>
+        </div>
+
+        <div class="card">
+            <div class="input-group">
+                <input type="text" id="urlInput" placeholder="Paste video URL here...">
+                <button class="btn btn-primary" id="fetchBtn">🎬 Open Video</button>
+            </div>
+            <div class="sites">
+                <span class="site-badge">▶️ YouTube</span>
+                <span class="site-badge">📸 Instagram</span>
+                <span class="site-badge">👍 Facebook</span>
+                <span class="site-badge">🐦 Twitter</span>
+                <span class="site-badge">🎵 TikTok</span>
+            </div>
+        </div>
+
+        <div class="alert" id="alert"></div>
+
+        <div class="footer">
+            <p>🔒 100% Free • No Registration</p>
+            <p style="font-size:12px; margin-top:5px;">⚡ Videos open in new page with download options</p>
+        </div>
+    </div>
+
+    <script>
+        const urlInput = document.getElementById('urlInput');
+        const fetchBtn = document.getElementById('fetchBtn');
+        const alertDiv = document.getElementById('alert');
+
+        function showAlert(msg, type) {
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = msg;
+            alertDiv.style.display = 'block';
+            setTimeout(() => alertDiv.style.display = 'none', 5000);
+        }
+
+        function setLoading(loading) {
+            fetchBtn.disabled = loading;
+            fetchBtn.innerHTML = loading ? '⏳ Loading...' : '🎬 Open Video';
+        }
+
+        function extractVideoId(url) {
+            // YouTube
+            let match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/);
+            if (match) return match[1];
+            
+            // Instagram
+            match = url.match(/instagram\.com\/(?:p|reel)\/([a-zA-Z0-9_-]+)/);
+            if (match) return match[1];
+            
+            return null;
+        }
+
+        function detectPlatform(url) {
+            if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+            if (url.includes('instagram.com')) return 'instagram';
+            if (url.includes('facebook.com') || url.includes('fb.watch')) return 'facebook';
+            if (url.includes('twitter.com') || url.includes('x.com')) return 'twitter';
+            if (url.includes('tiktok.com')) return 'tiktok';
+            return 'unknown';
+        }
+
+        async function openVideo() {
+            const url = urlInput.value.trim();
+            if (!url) {
+                showAlert('Please enter a video URL!', 'error');
+                return;
+            }
+
+            const platform = detectPlatform(url);
+            let videoId = extractVideoId(url);
+
+            if (platform === 'youtube' && videoId) {
+                setLoading(true);
+                // Open video page with 3 dots menu
+                window.location.href = `/video/${videoId}`;
+                setLoading(false);
+                return;
+            }
+
+            if (platform === 'instagram' && videoId) {
+                // For Instagram, try to get video info and then open
+                setLoading(true);
+                try {
+                    const response = await fetch('/get_info', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url })
+                    });
+                    const data = await response.json();
+                    if (data.error) {
+                        showAlert('Could not fetch video. Please try again.', 'error');
+                        setLoading(false);
+                        return;
+                    }
+                    // Open video page with fallback
+                    window.location.href = `/video/${videoId}?platform=instagram&url=${encodeURIComponent(url)}`;
+                } catch (error) {
+                    showAlert('Error loading video. Try again.', 'error');
+                    setLoading(false);
+                }
+                return;
+            }
+
+            // For other platforms, try to get info and open
+            setLoading(true);
+            try {
+                const response = await fetch('/get_info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url })
+                });
+                const data = await response.json();
+                if (data.error) {
+                    showAlert('Could not fetch video. Try a different URL.', 'error');
+                    setLoading(false);
+                    return;
+                }
+                // If we have a video ID, open it
+                if (data.video_id) {
+                    window.location.href = `/video/${data.video_id}`;
+                } else {
+                    showAlert('This platform is not fully supported yet.', 'info');
+                }
+                setLoading(false);
+            } catch (error) {
+                showAlert('Error loading video. Try again.', 'error');
+                setLoading(false);
+            }
+        }
+
+        // Event listeners
+        fetchBtn.addEventListener('click', openVideo);
+        urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') openVideo();
+        });
+
+        // Welcome message
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                showAlert('✨ Paste any YouTube URL and click "Open Video"!', 'info');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

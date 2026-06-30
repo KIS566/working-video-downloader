@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Video Player</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #0a0a0a;
+            min-height: 100vh;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        /* Video Container */
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 16px;
+            background: #000;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8);
+        }
+
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* Video Info */
+        .video-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+
+        .video-title {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .video-meta {
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            margin-bottom: 20px;
+        }
+
+        .back-btn {
+            color: white;
+            text-decoration: none;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 18px;
+            border-radius: 30px;
+            background: rgba(255,255,255,0.08);
+            transition: background 0.3s;
+        }
+
+        .back-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* 3 Dots Menu */
+        .menu-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .menu-btn {
+            background: rgba(255,255,255,0.08);
+            border: none;
+            color: white;
+            font-size: 28px;
+            padding: 8px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: background 0.3s;
+            line-height: 1;
+        }
+
+        .menu-btn:hover {
+            background: rgba(255,255,255,0.15);
+        }
+
+        .menu-dropdown {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            margin-top: 8px;
+            background: rgba(30,30,50,0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 8px 0;
+            min-width: 220px;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .menu-dropdown.show {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .menu-dropdown a,
+        .menu-dropdown button {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: #ddd;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            background: none;
+            border: none;
+            width: 100%;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: inherit;
+        }
+
+        .menu-dropdown a:hover,
+        .menu-dropdown button:hover {
+            background: rgba(79,172,254,0.15);
+            color: white;
+        }
+
+        .menu-dropdown .download-option {
+            color: #4facfe;
+        }
+
+        .menu-dropdown .download-option:hover {
+            background: rgba(79,172,254,0.2);
+        }
+
+        .menu-divider {
+            height: 1px;
+            background: rgba(255,255,255,0.06);
+            margin: 6px 0;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Alert */
+        .alert {
+            padding: 12px 18px;
+            border-radius: 12px;
+            margin: 15px 0;
+            display: none;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: rgba(67,233,123,0.15);
+            color: #43e97b;
+            border: 1px solid rgba(67,233,123,0.2);
+        }
+
+        .alert-error {
+            background: rgba(245,87,108,0.15);
+            color: #f5576c;
+            border: 1px solid rgba(245,87,108,0.2);
+        }
+
+        .alert-info {
+            background: rgba(79,172,254,0.15);
+            color: #4facfe;
+            border: 1px solid rgba(79,172,254,0.2);
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .video-title {
+                font-size: 18px;
+            }
+            .top-bar {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            .menu-btn {
+                font-size: 24px;
+                padding: 6px 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <a href="/" class="back-btn">← Back</a>
+            <div class="menu-container">
+                <button class="menu-btn" id="menuToggle">⋮</button>
+                <div class="menu-dropdown" id="menuDropdown">
+                    <button class="download-option" onclick="downloadVideo('best')">
+                        ⬇️ Download Best Quality
+                    </button>
+                    <button class="download-option" onclick="downloadVideo('1080p')">
+                        ⬇️ Download 1080p
+                    </button>
+                    <button class="download-option" onclick="downloadVideo('720p')">
+                        ⬇️ Download 720p
+                    </button>
+                    <button class="download-option" onclick="downloadVideo('480p')">
+                        ⬇️ Download 480p
+                    </button>
+                    <div class="menu-divider"></div>
+                    <button class="download-option" onclick="downloadVideo('mp3')">
+                        🎵 Download MP3 Audio
+                    </button>
+                    <div class="menu-divider"></div>
+                    <button onclick="openInNewTab()">
+                        🔗 Open in New Tab
+                    </button>
+                    <button onclick="copyLink()">
+                        📋 Copy Video Link
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Video Player -->
+        <div class="video-wrapper">
+            <iframe id="videoFrame" src="" allowfullscreen></iframe>
+        </div>
+
+        <!-- Video Info -->
+        <div class="video-info">
+            <div class="video-title" id="videoTitle">Loading video...</div>
+            <div class="video-meta" id="videoMeta">-</div>
+        </div>
+
+        <!-- Alert -->
+        <div class="alert" id="alert"></div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing download...</p>
+        </div>
+    </div>
+
+    <script>
+        // Get video ID from URL
+        const videoId = window.location.pathname.split('/').pop();
+        let videoUrl = '';
+        let videoTitle = '';
+
+        function showAlert(message, type) {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function setLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+        }
+
+        // Load video
+        async function loadVideo() {
+            try {
+                const response = await fetch('/get_info', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: `https://youtu.be/${videoId}` })
+                });
+                
+                const data = await response.json();
+                
+                if (data.error) {
+                    document.getElementById('videoTitle').textContent = 'Video not found';
+                    showAlert('Could not load video. Please check the URL.', 'error');
+                    return;
+                }
+
+                videoTitle = data.title || 'Video';
+                videoUrl = data.webpage_url || `https://youtube.com/watch?v=${videoId}`;
+
+                // Update video info
+                document.getElementById('videoTitle').textContent = videoTitle;
+                document.getElementById('videoMeta').textContent = 
+                    `${data.uploader || 'Unknown'} • ${data.views ? Number(data.views).toLocaleString() : '0'} views`;
+
+                // Load video in iframe
+                const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`;
+                document.getElementById('videoFrame').src = embedUrl;
+
+                showAlert('✅ Video loaded! Click ⋮ menu to download.', 'success');
+
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Failed to load video.', 'error');
+            }
+        }
+
+        // Download video
+        async function downloadVideo(quality) {
+            setLoading(true);
+            showAlert(`Preparing ${quality} download...`, 'info');
+
+            try {
+                let formatId = 'best';
+                let qualityType = 'video';
+
+                if (quality === '1080p') {
+                    formatId = 'bestvideo[height<=1080]+bestaudio/best';
+                } else if (quality === '720p') {
+                    formatId = 'bestvideo[height<=720]+bestaudio/best';
+                } else if (quality === '480p') {
+                    formatId = 'bestvideo[height<=480]+bestaudio/best';
+                } else if (quality === 'mp3') {
+                    qualityType = 'audio';
+                    formatId = 'bestaudio/best';
+                }
+
+                const response = await fetch('/download', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        url: `https://youtu.be/${videoId}`,
+                        format_id: formatId,
+                        quality_type: qualityType
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    showAlert('Download failed: ' + data.error, 'error');
+                    setLoading(false);
+                    return;
+                }
+
+                // Trigger download
+                const link = document.createElement('a');
+                link.href = `/download_file/${encodeURIComponent(data.filename)}`;
+                link.download = data.filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                showAlert(`✅ Download started: ${data.filename}`, 'success');
+                setLoading(false);
+
+                // Close menu
+                document.getElementById('menuDropdown').classList.remove('show');
+
+            } catch (error) {
+                console.error('Download error:', error);
+                showAlert('Download failed. Please try again.', 'error');
+                setLoading(false);
+            }
+        }
+
+        // Menu toggle
+        document.getElementById('menuToggle').addEventListener('click', function(e) {
+            e.stopPropagation();
+            document.getElementById('menuDropdown').classList.toggle('show');
+        });
+
+        document.addEventListener('click', function() {
+            document.getElementById('menuDropdown').classList.remove('show');
+        });
+
+        // Copy link
+        function copyLink() {
+            const url = `https://youtu.be/${videoId}`;
+            navigator.clipboard.writeText(url).then(() => {
+                showAlert('📋 Link copied to clipboard!', 'success');
+            }).catch(() => {
+                showAlert('Failed to copy link', 'error');
+            });
+        }
+
+        // Open in new tab
+        function openInNewTab() {
+            window.open(`https://youtu.be/${videoId}`, '_blank');
+        }
+
+        // Load video on page load
+        window.addEventListener('load', loadVideo);
+    </script>
+</body>
+</html>
